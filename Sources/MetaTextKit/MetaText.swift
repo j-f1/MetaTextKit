@@ -16,7 +16,6 @@ public class MetaText: NSObject {
 
     public weak var delegate: MetaTextDelegate?
 
-    public let layoutManager: MetaLayoutManager
     public let textStorage: MetaTextStorage
     public let textView: MetaTextView
 
@@ -42,21 +41,21 @@ public class MetaText: NSObject {
     public override init() {
         let textStorage = MetaTextStorage()
         self.textStorage = textStorage
+        
+        let textContentStorage = NSTextContentStorage()
+        textContentStorage.textStorage = textStorage
 
-        let layoutManager = MetaLayoutManager()
-        self.layoutManager = layoutManager
-        textStorage.addLayoutManager(layoutManager)
-
+        let textLayoutManager = NSTextLayoutManager()
+        textContentStorage.addTextLayoutManager(textLayoutManager)
+        
         let textContainer = NSTextContainer(size: .zero)
-        layoutManager.addTextContainer(textContainer)
+        textLayoutManager.textContainer = textContainer
 
         textView = MetaTextView(frame: .zero, textContainer: textContainer)
-        layoutManager.hostView = textView
 
         super.init()
 
         textStorage.processDelegate = self
-        layoutManager.delegate = self
     }
     
 }
@@ -106,14 +105,6 @@ extension MetaText {
 // MARK: - MetaTextStorageDelegate
 extension MetaText: MetaTextStorageDelegate {
     public func processEditing(_ textStorage: MetaTextStorage) -> MetaContent? {
-        // note: check the attachment content view needs remove or not
-        // "Select All" then delete text not call the `drawGlyphs` methold
-        if textStorage.length == 0 {
-            for view in textView.subviews where view.tag == MetaLayoutManager.displayAttachmentContentViewTag {
-                view.removeFromSuperview()
-            }
-        }
-
         guard let content = delegate?.metaText(self, processEditing: textStorage) else { return nil }
 
         // configure meta
