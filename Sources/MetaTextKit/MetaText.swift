@@ -63,17 +63,12 @@ public class MetaText: NSObject {
 extension MetaText {
 
     public var backedString: String {
-        let string = textStorage.string
-        let nsString = NSMutableString(string: string)
-        textStorage.enumerateAttribute(
-            .attachment,
-            in: NSRange(location: 0, length: textStorage.length),
-            options: [.reverse])
-        { value, range, _ in
-            guard let attachment = value as? MetaAttachment else { return }
-            nsString.replaceCharacters(in: range, with: attachment.string)
-        }
-        return nsString as String
+        AttributedString(textStorage).runs.map { run in
+            if let attachment = run.attributes.attachment as? MetaAttachment {
+                return attachment.string
+            }
+            return run.description
+        }.joined()
     }
 
 }
